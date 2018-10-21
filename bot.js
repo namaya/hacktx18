@@ -111,7 +111,7 @@ controller.hears(['(.*)'],'message_received', luis.middleware.hereIntent, functi
     } else if (message.topIntent.intent == 'Utilities.Confirm') {
         bot.reply(message, 'Hi!');
     } else {
-        bot.reply(message, "Sorry, I do not understand what you said. Please ask again. " + message.topIntent);
+        bot.reply(message, "Sorry, I do not understand what you said. Please ask again. ");
     }
 });
 
