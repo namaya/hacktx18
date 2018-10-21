@@ -35,6 +35,8 @@ if (!process.env.verify_token) {
 
 var Botkit = require('botkit');
 var debug = require('debug')('botkit:main');
+let luis = require('./luis-middleware');
+var luisOptions = {serviceUri: process.env.luis_uri};
 
 // Create the Botkit controller, which controls all instances of the bot.
 var controller = Botkit.facebookbot({
@@ -44,6 +46,8 @@ var controller = Botkit.facebookbot({
     studio_token: process.env.studio_token,
     studio_command_uri: process.env.studio_command_uri,
 });
+
+controller.middleware.receive.use(luis.middleware.receive(luisOptions));
 
 // Set up an Express-powered webserver to expose oauth and webhook endpoints
 var webserver = require(__dirname + '/components/express_webserver.js')(controller);
@@ -69,6 +73,47 @@ require("fs").readdirSync(normalizedPath).forEach(function(file) {
   require("./skills/" + file)(controller);
 });
 
+function askForAListOfTools(entities) {
+    if (entities.length > 0) {
+        console.log('entity: ', entities[0]);
+        if (entities[0].type.toLowerCase() == 'dog house') {
+            return 'hammer, wood, nails, and a good attitude!';
+        } else if (entities[0].type.toLowerCase() == 'bookshelf') {
+            return '2x4, casting, and some nails.';
+        }
+    }
+}
+
+function askForProfessionalAdvice(entities) {
+    if (entities.length > 0) {
+        console.log('entity: ', entities[0]);
+        if (entities[0].type.toLowerCase() == 'dog house') {
+            return "Sorry, I don't know anything about dog houses!";
+        } else if (entities[0].type.toLowerCase() == 'bookshelf') {
+            return 'What is a bookshelf?';
+        }
+    }
+}
+
+controller.hears(['(.*)'],'message_received', luis.middleware.hereIntent, function(bot, message) {
+    // bot.reply(message, 'Sorry, I do not understand what you said. Please use one of the following key words:\n\nTasks\nquestion\n...');
+    console.log('DEBUG: ', message);
+
+    if (message.attachments && message.attachments[0] && message.attachments[0].type == 'image') {
+        bot.reply(message, 'Sorry, Image classification under construction.');
+        return false;
+    }
+
+    if (message.topIntent.intent == 'AskForAListOfTools') {
+        bot.reply(message, "You'll need " + askForAListOfTools(message.entities));
+    } else if (message.topIntent.intent == 'AskForProfessionalAdvice') {
+        bot.reply(message, askForProfessionalAdvice(message.entities));
+    } else if (message.topIntent.intent == 'Utilities.Confirm') {
+        bot.reply(message, 'Hi!');
+    } else {
+        bot.reply(message, "Sorry, I do not understand what you said. Please ask again. " + message.topIntent);
+    }
+});
 
 // This captures and evaluates any message sent to the bot as a DM
 // or sent to the bot in the form "@bot message" and passes it to

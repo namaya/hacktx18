@@ -19,9 +19,8 @@
 */
 
 module.exports = function(controller) {
-    // listen for a user saying "add <something>", and then add it to the user's list
-    // store the new list in the storage system
-    controller.hears(['(.*)'],'message_received', function(bot, message) {
-        bot.reply(message, 'Sorry, I do not understand what you said. Please use one of the following key words:\n\nTasks\nquestion\n...');
-    });
+    // controller.hears(['(.*)'],'message_received', luis.middleware.hereIntent, function(bot, message) {
+    //     console.log(message);
+    //     bot.reply(message, 'Sorry, I do not understand what you said. Please use one of the following key words:\n\nTasks\nquestion\n...');
+    // });
 }
